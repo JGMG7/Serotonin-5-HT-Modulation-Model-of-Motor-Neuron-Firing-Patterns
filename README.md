@@ -1,5 +1,5 @@
 Serotonin (5-HT) Modulation Model of Motor Neuron Firing Patterns
-
+=================================================================
 
 This package is running with the NEURON simulation program version 8.2 available on internet at:
  https://www.neuron.yale.edu/neuron/ 
