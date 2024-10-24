@@ -1,0 +1,78 @@
+/*
+ Localization of synaptic inputs and Ca-PIC channels over dendrites at the similar distance from the soma:
+
+ Take from Kim (2017). Obtained from ModelDB (McDougal et al., 2017; accession  number 235769)
+
+- Kim, H. (2017). Muscle length-dependent contribution of motoneuron Cav1.3 channels to force production in model slow motor unit. Journal of Applied Physiology, 123(1). https://doi.org/10.1152/japplphysiol.00491.2016
+
+- McDougal, R. A., Morse, T. M., Carnevale, T., Marenco, L., Wang, R., Migliore, M., Miller, P. L., Shepherd, G. M., & Hines, M. L. (2017). Twenty years of ModelDB and beyond: building essential modeling tools for the future of neuroscience. In Journal of Computational Neuroscience (Vol. 42, Issue 1). https://doi.org/10.1007/s10827-016-0623-7
+
+*/
+
+
+// global constants
+v_init=-70
+num_row=10000										
+max_dist=0											
+j=0 												
+END_SIM_TIME=10000
+tstop=END_SIM_TIME									
+STIM_DUR_TIME = 60									
+vd_mean_600 = 0
+FREQ = 250 				  							
+REF = 0.5 
+
+// global variables
+objref iCaL[num_row]
+objref iSyn[num_row]
+
+// localization of Ca-PIC channels and synaptic inputs at the similar Dpath
+proc loc_dend(){local i, init, end, err_dist, err_min, x_min 
+
+	init=0										
+	end=0											
+	err_dist=0										
+	err_min=0										
+	x_min=0	
+
+	// calculate the longest path length from the soma
+	forall {
+		//nseg *= 3									
+		soma distance(0, 0)							
+		for(x){
+			if (max_dist < distance(x)) {					
+			max_dist = distance(x)
+			}
+		}
+		err_min=max_dist								
+	}
+	
+	// set the specific Dpath
+	i = 600 											 
+  	forall {
+		init = distance(0)				     
+		end  = distance(1)				     
+		if (init<=i && i<end) {				 
+			for(x) {
+				err_dist=abs(i-distance(x))	 
+				if (err_min > err_dist) {	 
+					err_min=err_dist
+					x_min=x
+				}	
+			}
+			if(x_min==0){x_min=0.0001}
+			if(x_min==1){x_min=0.9999}
+			
+			iCaL[j] = new CaL(x_min)
+			iCaL[j].gcalbar=1.37 * area(x_min) * (10^-4)^2 * 10^3 //600um [mS/cm2]
+			
+			iSyn[j] = new RampSyn(x_min)
+			iSyn[j].gmax=1.244 * area(x_min) * (10^-4)^2 * 10^3 //600um [mS/cm2]
+			
+			j=j+1						 
+			err_min=max_dist			  
+		}
+	}
+}
+
+loc_dend()
